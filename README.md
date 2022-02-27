@@ -1,4 +1,4 @@
-# WHAT-THE-CELL...-AND-WHERE-
+# what-the-cell-and-where
 
 In this repository you will find the content of our capstone project "What the cell... and Where" as part of our Data Science Bootcamp of *neuefische GmBH*.
 
