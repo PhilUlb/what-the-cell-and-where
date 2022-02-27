@@ -1,4 +1,4 @@
-# what-the-cell-and-where
+# WHAT-THE-CELL...-AND-WHERE-
 
 In this repository you will find the content of our capstone project "What the cell... and Where" as part of our Data Science Bootcamp of *neuefische GmBH*.
 
@@ -50,6 +50,7 @@ pip install tensorflow-metal
 pip install -r requirements.txt
 pip install git+https://github.com/tensorflow/examples.git
 ```
+**Note:** `requirements_versions.txt` contains the version numbers of all libraries contained in the requirements file in case installation of the latest versions (as is done by using `requirements.txt`) causes any troubles.
 
 ### Execute the following code in the shell in the main directory of this notebook to create the necessary data subfolders
 
