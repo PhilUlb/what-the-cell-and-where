@@ -1,0 +1,51 @@
+defaults:
+  - _self_
+
+# Model checkpoint
+checkpoint:
+  path: null  # Will be set via CLI
+  map_location: auto
+
+# Evaluation settings
+evaluation:
+  batch_size: 16
+  num_workers: 4
+  pin_memory: true
+  save_predictions: true
+  save_masks: true
+  threshold: 0.5
+
+# Metrics to compute
+metrics:
+  iou: true
+  dice: true
+  precision: true
+  recall: true
+  f1: true
+  accuracy: true
+  per_class: true
+  overall: true
+
+# Output settings
+output:
+  save_dir: ./runs/evaluation
+  save_format: png  # png, jpg, npz
+  save_overlay: true
+  save_side_by_side: true
+  save_metrics: true
+  save_csv: true
+
+# Visualization
+visualization:
+  num_samples: 16
+  figsize: [12, 8]
+  dpi: 100
+  colormap: viridis
+  alpha: 0.7
+
+# Data
+data:
+  test_split: test
+  include_train: false
+  include_val: false
+  cell_types: null  # null = all, or specify list 

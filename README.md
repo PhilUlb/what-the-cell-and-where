@@ -1,103 +1,263 @@
-# WHAT-THE-CELL...-AND-WHERE-
+# What The Cell - Cell Segmentation Tool
 
-In this repository you will find the content of our capstone project "What the cell... and Where" as part of our Data Science Bootcamp of *neuefische GmBH*.
+A production-grade Python package for cell segmentation in microscopy images using U-Net variants, trained on the Kaggle Sartorius dataset.
 
-### What is this repository about:
-Manually counting cells in microscopy samples, e.g., to test the efficacy of cancer drugs to selectively inhibit the growth of cancer cells, is a tedious and time-consuming effort. Here, we automated this process using deep learning algorithms to identify the location and size of cellular mass.
+## Features
 
-More specifically, we use U-Net models for semantic segmentation of nervous tissue cell bodies in light microscope images. The data set we use to train and test our models is from a kaggle challenge and can be found here:
+- **Multiple Mask Sources**: Generate masks from RLE annotations, K-Means clustering, or SIFT features
+- **Flexible U-Net Architecture**: Support for VGG16, MobileNetV2, and scratch encoders
+- **Production Ready**: Type hints, comprehensive testing, logging, and configuration management
+- **GPU Support**: CUDA-ready with automatic fallback to CPU
+- **CLI Interface**: Simple command-line tools for all operations
 
-https://www.kaggle.com/c/sartorius-cell-instance-segmentation
+## Quick Start
 
-The dataset contains pure (i.e. no mixtures of cell types) cell culture images of three cell types which can all be found in human brains: 
+### 1. Installation
 
-* shsy5y: This is the neuroblastoma cell line
-* cort: neurons which should be unaffected by cancer drugs
-* astrocytes: glial cells that help neurons to electrically shield themselves from other neurons and therefore, should also not be targeted by drugs.
+```bash
+# Install with GPU support (recommended)
+poetry install --with gpu
 
-Just to avoid confusion: Although the data set is provided by the kaggle challenge (here, the evaluation metric is the mean average IoU since instance segmentation is the task), we decided to focus on semantic segmentation since analyzing the cell body area is expedient for testing drug efficacy. Hence, we use IoU (intersection of union) for just two pixel classes: cell type and none-cell type.
+# Or install CPU-only version
+poetry install --without gpu
 
-We analyzed that the astrocyte segmentation masks provided by the dataset in form of running length annotations have a remarkable deviation from the actual cell bodies. To deal with this issue we implemented notebooks that create segmentation masks that can be used alternatively to train and test our models.
-
-**Please go through the whole set up in the exact order as follows**
-
-
-## 1. Set up of the Environment
-Make sure you have the latest version of macOS (currently Monterey) installed.
-Also make sure that xcode is installed and updated: 
-
-```BASH
-xcode-select --install
+# Install development dependencies
+poetry install --with dev
 ```
 
-Then we can go on to install hdf5:
+### 2. Setup
 
-```BASH
- brew install hdf5
-```
-With the system setup like that, we can go and create our environment and install tensorflow
+```bash
+# Install pre-commit hooks and setup development environment
+make setup
 
-```BASH
-pyenv local 3.9.4
-python -m venv .venv
-source .venv/bin/activate
-export HDF5_DIR=/opt/homebrew/Cellar/hdf5/1.12.1
-
-pip install -U pip
-pip install --no-binary=h5py h5py
-pip install tensorflow-macos
-pip install tensorflow-metal
-pip install -r requirements.txt
-pip install git+https://github.com/tensorflow/examples.git
-```
-**Note:** `requirements_versions.txt` contains the version numbers of all libraries contained in the requirements file in case installation of the latest versions (as is done by using `requirements.txt`) causes any troubles.
-
-### Execute the following code in the shell in the main directory of this notebook to create the necessary data subfolders
-
-```BASH
-mkdir -p data/data_original
-
-mkdir -p data/data_preprocessed/mask_groundtruth
-mkdir -p data/data_preprocessed/sliced_images/images
-mkdir -p data/data_preprocessed/sliced_images/masks
-mkdir -p data/data_preprocessed/sliced_images/predictions/masks
-mkdir -p data/data_preprocessed/mask_predicted/masks
-mkdir -p data/data_preprocessed/mask_predicted/intersections
-mkdir -p data/data_preprocessed/mask_predicted/unions
-
-mkdir -p data/data_preprocessed/mask_cluster/before_preprocessing/segmented_img
-mkdir -p data/data_preprocessed/mask_cluster/before_preprocessing/segmented_img_sift
-mkdir -p data/data_preprocessed/mask_cluster/masks_cg
-mkdir -p data/data_preprocessed/mask_cluster/masks_cs
-mkdir -p data/data_preprocessed/sliced_images/masks_cg
-mkdir -p data/data_preprocessed/sliced_images/masks_cs
+# Or manually
+poetry install --with dev
+pre-commit install
 ```
 
-**Additional notes**
-* All notebooks are tested on MacBook Air M1 chip
-* All notebooks work with train.csv and train directory from the kaggle dataset. Copy both in data_original
+### 3. Download Dataset
 
-## 2. Running order for notebooks
+```bash
+# Set Kaggle credentials (optional)
+export KAGGLE_USERNAME=your_username
+export KAGGLE_KEY=your_api_key
 
-In order to run all scripts flawlessly, it is mandatory to run the notebooks in the right order. Please use the notebook and directory labels as reference to find out what to do and in which order.
+# Download dataset
+poetry run wtcell download-dataset
+```
 
-Here, we summarize the content of all paths.
+### 4. Generate Masks
 
-**RUN_ONCE_PREPROCESSING:** The notebooks have to be executed at first. They do the following:
-* 01: Creates segmentation masks with Kmeans clustering the pixel values (alternative masks to train our U-Net models)
-* 02: Creates segmentation masks by the help of SIFT keypoints (alternative masks to train our U-Net models)
-* 03: Creates masks from running length annotations delivered by Sartorius Kaggle data set. Slices images and masks from 01 to 03 into four quadrants.
+```bash
+# Generate masks from RLE annotations
+poetry run wtcell preprocess --source rle --config configs/data.yaml
 
-**U-NET**
-* 01: Define U-Net architures
-* 02: Defining data pipeline functions for U-Nets: choosing masks, creating train-test-splits, data augmentation
-* 03: Model training with different U-Net model options: from Scratch and semi-pretrained using VGG16 and MobileNetV2 for the down convolution path.
-* 04: Evaluation of models including IoU analysis
-* 05: Visualization of model results
-* 06: Advanced visualizations for presentation
+# Generate masks using K-Means clustering
+poetry run wtcell preprocess --source kmeans --config configs/data.yaml
 
-**EDA**
-* 01: cell type specific explorative data analysis inclduing grayscale, segmentation areas ect. pp.
-* 02: figures generated from EDA notebook 01
-* 03: EDA using feature extraction tool SIFT (please check license markdown)
+# Generate masks using SIFT features
+poetry run wtcell preprocess --source sift --config configs/data.yaml
+```
+
+### 5. Train Model
+
+```bash
+# Train U-Net from scratch
+poetry run wtcell train \
+    --config configs/data.yaml \
+    --config configs/model.yaml \
+    --config configs/train.yaml
+
+# Train with specific encoder
+poetry run wtcell train \
+    --config configs/data.yaml \
+    --config configs/model.yaml \
+    --config configs/train.yaml \
+    --model-encoder vgg16
+```
+
+### 6. Evaluate Model
+
+```bash
+# Evaluate trained model
+poetry run wtcell evaluate \
+    --config configs/eval.yaml \
+    --checkpoint runs/latest/best.ckpt
+```
+
+### 7. Run Inference
+
+```bash
+# Predict on new images
+poetry run wtcell predict \
+    --config configs/predict.yaml \
+    --checkpoint runs/latest/best.ckpt \
+    --input data/test_images \
+    --output data/predictions
+```
+
+## Project Structure
+
+```
+wtcell/
+├── configs/              # Configuration files
+├── wtcell/              # Main package
+│   ├── cli/            # Command-line interface
+│   ├── data/           # Data loading and preprocessing
+│   ├── masks/          # Mask generation algorithms
+│   ├── models/         # U-Net and encoder architectures
+│   ├── training/       # Training loops and losses
+│   ├── eval/           # Evaluation and metrics
+│   └── utils/          # Utilities and helpers
+├── tests/              # Test suite
+├── scripts/            # Utility scripts
+└── docs/               # Documentation
+```
+
+## Configuration
+
+The package uses YAML configuration files for all settings:
+
+- `configs/data.yaml` - Data paths, augmentation, and loading settings
+- `configs/model.yaml` - Model architecture and encoder settings
+- `configs/train.yaml` - Training hyperparameters and settings
+- `configs/eval.yaml` - Evaluation metrics and visualization settings
+- `configs/predict.yaml` - Inference and output settings
+
+## Mask Generation Methods
+
+### 1. RLE Masks (Ground Truth)
+- Decode Kaggle RLE annotations
+- Most accurate but requires annotation data
+- Fastest generation method
+
+### 2. K-Means Clustering
+- Apply K-Means clustering to pixel values
+- Follow with Gaussian filtering and thresholding
+- Good for images with distinct intensity regions
+
+### 3. SIFT Features
+- Extract SIFT keypoints from images
+- Apply clustering to keypoint-enhanced images
+- Most computationally intensive but can capture complex patterns
+
+## Model Architecture
+
+The U-Net implementation supports:
+
+- **Encoders**: VGG16, MobileNetV2, or scratch
+- **Loss Functions**: BCE, Dice, BCE+Dice, Focal, IoU
+- **Optimizers**: Adam, AdamW, SGD
+- **Schedulers**: Cosine, Step, Plateau, OneCycle
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+poetry run pytest
+
+# Run with coverage
+poetry run pytest --cov=wtcell
+
+# Run specific test file
+poetry run pytest tests/test_rle.py
+```
+
+### Code Quality
+
+```bash
+# Format code
+make format
+
+# Lint code
+make lint
+
+# Type checking
+make typecheck
+
+# Run all quality checks
+make ci
+```
+
+### Building Documentation
+
+```bash
+# Build docs
+make docs
+
+# Serve docs locally
+make docs-serve
+```
+
+## Docker
+
+```bash
+# Build image
+make docker-build
+
+# Run with GPU
+make docker-run
+
+# Run CPU-only
+make docker-run-cpu
+```
+
+## Environment Variables
+
+```bash
+# Kaggle API (optional)
+export KAGGLE_USERNAME=your_username
+export KAGGLE_KEY=your_api_key
+
+# Training settings
+export SEED=42
+export NUM_WORKERS=4
+export BATCH_SIZE=8
+
+# GPU settings
+export CUDA_VISIBLE_DEVICES=0
+export MIXED_PRECISION=true
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Citation
+
+If you use this tool in your research, please cite:
+
+```bibtex
+@software{wtcell2024,
+  title={What The Cell - Cell Segmentation Tool},
+  author={neuefische GmbH},
+  year={2024},
+  url={https://github.com/neuefische/what-the-cell-and-where}
+}
+```
+
+## Support
+
+For questions and support:
+- Open an issue on GitHub
+- Check the documentation
+- Review the test examples
+
+## Acknowledgments
+
+- Original research by neuefische GmbH Data Science Bootcamp
+- U-Net architecture by Ronneberger et al.
+- PyTorch and PyTorch Lightning communities
 

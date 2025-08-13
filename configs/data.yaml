@@ -1,0 +1,80 @@
+defaults:
+  - _self_
+
+# Data paths
+data:
+  root: ./data
+  raw_dir: ./data/raw
+  interim_dir: ./data/interim
+  processed_dir: ./data/processed
+  train_csv: ./data/raw/train.csv
+  images_dir: ./data/raw/train
+  masks_dir: ./data/interim/masks
+
+# Mask source configuration
+masks:
+  source: rle  # Options: rle, kmeans, sift
+  rle:
+    enabled: true
+    csv_path: ./data/raw/train.csv
+  kmeans:
+    enabled: false
+    n_clusters: 80
+    n_init: 5
+    max_iter: 50
+    kernel_size: 12
+    threshold_offset: 2
+  sift:
+    enabled: false
+    n_octave_layers: 40
+    n_features: 20000
+    contrast_threshold: 0.02
+    edge_threshold: 0.01
+    sigma: 1.0
+
+# Image processing
+image:
+  height: 128
+  width: 128
+  channels: 1
+  normalize: true
+  tile_enabled: true
+  tile_size: 128
+  overlap: 0
+
+# Data augmentation
+augmentation:
+  train:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotation: 15
+    brightness_contrast: 0.2
+    elastic_transform: 0.1
+  val:
+    horizontal_flip: 0.0
+    vertical_flip: 0.0
+    rotation: 0
+    brightness_contrast: 0.0
+    elastic_transform: 0.0
+
+# Data loading
+dataloader:
+  batch_size: 8
+  num_workers: 4
+  pin_memory: true
+  shuffle: true
+  drop_last: false
+
+# Split configuration
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  seed: 42
+  stratify_by: cell_type
+
+# Cell types
+cell_types:
+  - astro
+  - cort
+  - shsy5y 

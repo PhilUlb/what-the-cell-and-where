@@ -1,0 +1,61 @@
+defaults:
+  - _self_
+
+# Training parameters
+trainer:
+  max_epochs: 100
+  min_epochs: 10
+  val_check_interval: 1.0
+  log_every_n_steps: 50
+  accumulate_grad_batches: 1
+  gradient_clip_val: 1.0
+  deterministic: true
+  benchmark: true
+
+# Early stopping
+early_stopping:
+  monitor: val_iou
+  mode: max
+  patience: 15
+  min_delta: 0.001
+
+# Model checkpointing
+checkpointing:
+  monitor: val_iou
+  mode: max
+  save_top_k: 3
+  save_last: true
+  every_n_epochs: 1
+
+# Logging
+logging:
+  tensorboard: true
+  wandb: false
+  log_images: true
+  log_interval: 100
+
+# Validation
+validation:
+  frequency: 1
+  save_predictions: true
+  num_samples: 16
+
+# Data
+data:
+  batch_size: 8
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+
+# Hardware
+hardware:
+  accelerator: auto  # auto, gpu, cpu
+  devices: auto
+  precision: 16-mixed  # 32, 16, 16-mixed, bf16-mixed
+  strategy: auto  # auto, ddp, ddp_spawn
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false 

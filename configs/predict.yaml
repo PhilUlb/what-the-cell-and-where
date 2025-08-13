@@ -1,0 +1,47 @@
+defaults:
+  - _self_
+
+# Model checkpoint
+checkpoint:
+  path: null  # Will be set via CLI
+  map_location: auto
+
+# Input/Output paths
+paths:
+  input_dir: null  # Will be set via CLI
+  output_dir: null  # Will be set via CLI
+  image_extensions: [".png", ".jpg", ".jpeg", ".tiff", ".tif"]
+
+# Prediction settings
+prediction:
+  batch_size: 8
+  num_workers: 4
+  pin_memory: true
+  threshold: 0.5
+  resize: true
+  original_size: true
+
+# Output options
+output:
+  save_probabilities: true
+  save_binary_masks: true
+  save_overlays: true
+  save_side_by_side: true
+  format: png  # png, jpg, npz
+  colormap: viridis
+  alpha: 0.7
+
+# Post-processing
+post_processing:
+  remove_small_objects: true
+  min_area: 100
+  morphological_ops: true
+  kernel_size: 3
+  operation: closing  # opening, closing, both
+
+# Visualization
+visualization:
+  figsize: [12, 8]
+  dpi: 100
+  show_confidence: true
+  show_original: true 
